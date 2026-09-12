@@ -27,7 +27,8 @@ from redis.commands.search.index_definition import IndexDefinition, IndexType
 from sentence_transformers import SentenceTransformer
 
 # ---------- CONFIG ----------
-REDIS_HOST = "localhost"
+import os
+REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
 REDIS_PORT = 6379
 NODE_KEY_PREFIX = "dag_node:"
 INDEX_NAME = "dag_idx"
@@ -37,7 +38,7 @@ ROOT_NODE_ID = "root"  # every conversation starts here
 
 # Raw bytes (not decoded) - needed so the binary embedding field survives
 # round-tripping through Redis untouched; text fields are decoded manually.
-r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=False)
+r = redis.from_url(REDIS_URL, decode_responses=False)
 embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 
