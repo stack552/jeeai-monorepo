@@ -22,15 +22,15 @@ from redis.commands.search.index_definition import IndexDefinition, IndexType
 from sentence_transformers import SentenceTransformer
 
 # ---------- CONFIG ----------
-REDIS_HOST = "localhost"
-REDIS_PORT = 6379
+import os
+REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379")
 INDEX_NAME = "qa_cache_idx"
 KEY_PREFIX = "qa_cache:"
 VECTOR_DIM = 384  # all-MiniLM-L6-v2 output dimension
 SIMILARITY_THRESHOLD = 0.90  # cosine similarity - tune this based on real testing
 # -----------------------------
 
-r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, decode_responses=False)
+r = redis.from_url(REDIS_URL, decode_responses=False)
 
 embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
