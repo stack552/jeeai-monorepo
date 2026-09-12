@@ -21,7 +21,7 @@ from groq import Groq
 from langchain_groq import ChatGroq
 
 # ---------- CONFIG ----------
-CHROMA_DB_PATH = r"C:\Users\nsaip\OneDrive\Desktop\Kinematics\chroma_db"
+CHROMA_DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "chroma_db")
 COLLECTION_NAME = "kinematics_lectures"
 
 # Reads your Groq key from an environment variable - never hardcoded here,
