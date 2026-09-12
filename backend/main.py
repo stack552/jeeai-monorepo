@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from auth_utils import hash_password, verify_password, create_access_token, get_current_user, generate_reset_token
 from crud import create_conversation, add_message, get_conversation, list_conversations, delete_conversation
 
-sys.path.append(r"C:\Users\nsaip\OneDrive\Desktop\Kinematics")
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "rag-pipeline"))
 from app import handle_student_doubt_with_clarification_stream_async
 from dag_cache import ROOT_NODE_ID
 from database import init_db, get_db, User

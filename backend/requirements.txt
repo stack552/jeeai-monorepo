@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+psycopg2-binary
+python-jose[cryptography]
+bcrypt
+resend
+python-dotenv
+groq
+chromadb
+langchain-groq
+redis
+sentence-transformers
+numpy

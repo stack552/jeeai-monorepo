@@ -9,7 +9,8 @@ __pycache__/
 ragas_env/
 venv/
 *.db
-jeeai dev keyresend key
+jeeai dev key
+resend key
 *.mp4
 *.mp3
 *.pptx
