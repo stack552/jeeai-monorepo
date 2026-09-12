@@ -39,7 +39,7 @@ ROOT_NODE_ID = "root"  # every conversation starts here
 # Raw bytes (not decoded) - needed so the binary embedding field survives
 # round-tripping through Redis untouched; text fields are decoded manually.
 r = redis.from_url(REDIS_URL, decode_responses=False)
-embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+from shared_embedding import embedding_model
 
 
 def _embed(text: str) -> np.ndarray:

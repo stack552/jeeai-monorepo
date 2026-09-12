@@ -32,7 +32,7 @@ SIMILARITY_THRESHOLD = 0.90  # cosine similarity - tune this based on real testi
 
 r = redis.from_url(REDIS_URL, decode_responses=False)
 
-embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+from shared_embedding import embedding_model
 
 
 def _create_index_if_missing():
