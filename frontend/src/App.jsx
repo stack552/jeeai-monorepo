@@ -173,7 +173,7 @@ function App() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("http://localhost:8000/auth/me", {
+        const res = await fetch("https://api.jeeai.in/auth/me", {
           credentials: "include",
         });
         const data = await res.json();
@@ -195,7 +195,7 @@ function App() {
   // nothing gets persisted for them on the backend either.
   const fetchConversations = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:8000/conversations", {
+      const res = await fetch("https://api.jeeai.in/conversations", {
         credentials: "include",
       });
       if (!res.ok) return;
@@ -220,7 +220,7 @@ function App() {
   // conversation_id on the backend), not this one being viewed.
   const handleSelectConversation = useCallback(async (conversationId) => {
     try {
-      const res = await fetch(`http://localhost:8000/conversations/${conversationId}`, {
+      const res = await fetch(`https://api.jeeai.in/conversations/${conversationId}`, {
         credentials: "include",
       });
       if (!res.ok) return;
@@ -245,7 +245,7 @@ function App() {
 
   const streamFromBackend = async (assistantId, userMessageText) => {
     try {
-      const res = await fetch("http://localhost:8000/chat", {
+      const res = await fetch("https://api.jeeai.in/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -419,7 +419,7 @@ function App() {
     setMessages([]);
     setSidebarOpen(false);
     try {
-      await fetch("http://localhost:8000/new-chat", {
+      await fetch("https://api.jeeai.in/new-chat", {
         method: "POST",
         credentials: "include",
       });
@@ -442,7 +442,7 @@ function App() {
 
   const handleLogout = useCallback(async () => {
     try {
-      await fetch("http://localhost:8000/auth/logout", {
+      await fetch("https://api.jeeai.in/auth/logout", {
         method: "POST",
         credentials: "include",
       });
