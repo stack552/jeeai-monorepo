@@ -28,7 +28,7 @@ function Signup({ onClose, onSignupSuccess, onSwitchToLogin }) {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch("https://api.jeeai.in/auth/signup", {
+      const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

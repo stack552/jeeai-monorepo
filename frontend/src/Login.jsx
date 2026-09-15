@@ -17,7 +17,7 @@ function Login({ onClose, onLoginSuccess, onSwitchToSignup, onForgotPassword }) 
 
     setIsSubmitting(true);
     try {
-      const res = await fetch("https://api.jeeai.in/auth/login", {
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include", // required so the browser stores the httpOnly cookie

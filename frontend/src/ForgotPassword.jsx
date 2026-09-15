@@ -17,7 +17,7 @@ function ForgotPassword({ onClose, onSwitchToLogin }) {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch("https://api.jeeai.in/auth/forgot-password", {
+      const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim() }),

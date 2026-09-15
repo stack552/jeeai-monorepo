@@ -173,7 +173,7 @@ function App() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("https://api.jeeai.in/auth/me", {
+        const res = await fetch("/api/auth/me", {
           credentials: "include",
         });
         const data = await res.json();
@@ -195,7 +195,7 @@ function App() {
   // nothing gets persisted for them on the backend either.
   const fetchConversations = useCallback(async () => {
     try {
-      const res = await fetch("https://api.jeeai.in/conversations", {
+      const res = await fetch("/api/conversations", {
         credentials: "include",
       });
       if (!res.ok) return;
@@ -220,7 +220,7 @@ function App() {
   // conversation_id on the backend), not this one being viewed.
   const handleSelectConversation = useCallback(async (conversationId) => {
     try {
-      const res = await fetch(`https://api.jeeai.in/conversations/${conversationId}`, {
+      const res = await fetch(`/api/conversations/${conversationId}`, {
         credentials: "include",
       });
       if (!res.ok) return;
@@ -245,7 +245,7 @@ function App() {
 
   const streamFromBackend = async (assistantId, userMessageText) => {
     try {
-      const res = await fetch("https://api.jeeai.in/chat", {
+      const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -419,7 +419,7 @@ function App() {
     setMessages([]);
     setSidebarOpen(false);
     try {
-      await fetch("https://api.jeeai.in/new-chat", {
+      await fetch("/api/new-chat", {
         method: "POST",
         credentials: "include",
       });
@@ -442,7 +442,7 @@ function App() {
 
   const handleLogout = useCallback(async () => {
     try {
-      await fetch("https://api.jeeai.in/auth/logout", {
+      await fetch("/api/auth/logout", {
         method: "POST",
         credentials: "include",
       });
