@@ -28,7 +28,7 @@ function ResetPassword({ token, onSuccess }) {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch("http://localhost:8000/auth/reset-password", {
+      const res = await fetch("https://api.jeeai.in/auth/reset-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, new_password: newPassword }),
