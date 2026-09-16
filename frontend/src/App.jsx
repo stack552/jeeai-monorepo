@@ -22,6 +22,13 @@ function normalizeMathDelimiters(text) {
 // then pairs with some unrelated LATER $$ in the message, sweeping
 // everything in between into one broken math block. Detect an odd
 // count of $$ and neutralize the leftover one so it can't do that.
+function fixTableFormatting(text) {
+  if (!text) return text;
+  let fixed = text.replace(/<br\s*\/?>/gi, "; ");
+  fixed = fixed.replace(/\|(?!\n)\s*\|/g, "|\n|");
+  return fixed;
+}
+
 function sanitizeStrayDollarSigns(text) {
   if (!text) return text;
   const matches = [...text.matchAll(/\$\$/g)];
@@ -54,7 +61,7 @@ const MessageBubble = memo(function MessageBubble({ msg, isCopied, onCopy, onFee
           remarkPlugins={[remarkMath]}
           rehypePlugins={[[rehypeKatex, { throwOnError: false, errorColor: "#71717a" }]]}
         >
-          {sanitizeStrayDollarSigns(normalizeMathDelimiters(msg.text))}
+          {sanitizeStrayDollarSigns(fixTableFormatting(normalizeMathDelimiters(msg.text)))}
         </ReactMarkdown>
         {msg.isStreaming && (
           <span className="inline-block w-1.5 h-4 bg-zinc-400 ml-1 animate-pulse align-middle" />
