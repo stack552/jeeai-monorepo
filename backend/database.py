@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 # SQLite database file will be created at jeeai-backend/jeeai_users.db
 DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./jeeai_users.db")
 connect_args = {"check_same_thread": False} if DATABASE_URL.startswith("sqlite") else {}
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
+engine = create_engine(DATABASE_URL, connect_args=connect_args, pool_pre_ping=True)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

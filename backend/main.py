@@ -22,7 +22,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173"   , "https://jeeai-monorepo-roan.vercel.app"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -136,7 +136,7 @@ async def login(request: LoginRequest, res: Response, db: Session = Depends(get_
         key="access_token",
         value=token,
         httponly=True,
-        samesite="lax",
+        samesite="none", secure=True,
         max_age=60 * 60 * 24,  # 24 hours
     )
 
@@ -312,7 +312,7 @@ async def chat(request: ChatRequest, req: Request, res: Response,
             yield f"data: {json.dumps({'error': 'Something went wrong while generating a response. Please try again.'})}\n\n"
 
     response = StreamingResponse(event_generator(), media_type="text/event-stream")
-    response.set_cookie(key="session_id", value=session_id, httponly=True, samesite="lax")
+    response.set_cookie(key="session_id", value=session_id, httponly=True, samesite="none", secure=True)
     return response
 
 
@@ -335,7 +335,7 @@ async def new_chat(req: Request, res: Response):
         "user_id": None,
         "conversation_id": None,
     }
-    res.set_cookie(key="session_id", value=new_id, httponly=True, samesite="lax")
+    res.set_cookie(key="session_id", value=new_id, httponly=True, samesite="none", secure=True)
     return {"status": "reset"}
 
 
