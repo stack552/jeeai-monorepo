@@ -6,14 +6,25 @@ import Login from "./Login";
 import Signup from "./Signup";
 import ForgotPassword from "./ForgotPassword";
 import ResetPassword from "./ResetPassword";
+import { LECTURES, LectureSidebar, LectureMain } from "./LectureLibrary";
 
 // Groq writes math as \[ ... \] and \( ... \), but remark-math only
-// recognizes $$ ... $$ and $ ... $ â€” convert before rendering.
+// recognizes $$ ... $$ and $ ... $ — convert before rendering.
 function normalizeMathDelimiters(text) {
   if (!text) return text;
   let normalized = text.replace(/\\\[([\s\S]*?)\\\]/g, (_, inner) => `$$${inner}$$`);
   normalized = normalized.replace(/\\\(([\s\S]*?)\\\)/g, (_, inner) => `$${inner}$`);
   return normalized;
+}
+
+// LLMs sometimes emit table rows all on one line, or use <br> tags
+// inside cells instead of real line breaks — react-markdown needs an
+// actual newline before each "| ... |" row to parse a table correctly.
+function fixTableFormatting(text) {
+  if (!text) return text;
+  let fixed = text.replace(/<br\s*\/?>/gi, "; ");
+  fixed = fixed.replace(/\|(?!\n)\s*\|/g, "|\n|");
+  return fixed;
 }
 
 // Sometimes Groq quotes lecture text that had a matched $$ ... $$ pair
@@ -54,7 +65,7 @@ const MessageBubble = memo(function MessageBubble({ msg, isCopied, onCopy, onFee
           remarkPlugins={[remarkMath]}
           rehypePlugins={[[rehypeKatex, { throwOnError: false, errorColor: "#71717a" }]]}
         >
-          {sanitizeStrayDollarSigns(normalizeMathDelimiters(msg.text))}
+          {sanitizeStrayDollarSigns(fixTableFormatting(normalizeMathDelimiters(msg.text)))}
         </ReactMarkdown>
         {msg.isStreaming && (
           <span className="inline-block w-1.5 h-4 bg-zinc-400 ml-1 animate-pulse align-middle" />
@@ -162,6 +173,21 @@ function App() {
   // --- Persistent chat history (Step 7) ---
   const [conversations, setConversations] = useState([]);
 
+  // --- Lecture library view toggle ---
+  // No react-router in this app — views are switched with local state,
+  // same pattern as authModal below. When true, the sidebar shows the
+  // lecture list (instead of conversations) and the main area shows the
+  // video/doubt panel (instead of the chat), inside this SAME layout —
+  // not a separate full-screen page.
+  const [showLectures, setShowLectures] = useState(false);
+  const [activeLecture, setActiveLecture] = useState(LECTURES[0] ?? null);
+  const [doubtOpen, setDoubtOpen] = useState(false);
+  // true once a lecture has been picked — collapses the sidebar entirely
+  // (at every screen size, not just mobile) so the video goes full-screen.
+  // The "?" button inside LectureMain reopens the sidebar as an overlay
+  // using the same sidebarOpen state the mobile menu already uses.
+  const [videoFocusMode, setVideoFocusMode] = useState(false);
+
   // --- Password reset state (3.10.4d) ---
   // Read once, on initial render, whether the URL contains a reset token.
   // This decides whether to show the full-page ResetPassword screen
@@ -173,7 +199,7 @@ function App() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const res = await fetch("/api/auth/me", {
+        const res = await fetch(`/api/auth/me`, {
           credentials: "include",
         });
         const data = await res.json();
@@ -195,7 +221,7 @@ function App() {
   // nothing gets persisted for them on the backend either.
   const fetchConversations = useCallback(async () => {
     try {
-      const res = await fetch("/api/conversations", {
+      const res = await fetch(`/api/conversations`, {
         credentials: "include",
       });
       if (!res.ok) return;
@@ -215,7 +241,7 @@ function App() {
   }, [currentUser, fetchConversations]);
 
   // Loads one past conversation's full messages into the chat view.
-  // This is a read-only replay of history â€” sending a new message
+  // This is a read-only replay of history — sending a new message
   // afterward continues the browser's LIVE session (and its own
   // conversation_id on the backend), not this one being viewed.
   const handleSelectConversation = useCallback(async (conversationId) => {
@@ -245,7 +271,7 @@ function App() {
 
   const streamFromBackend = async (assistantId, userMessageText) => {
     try {
-      const res = await fetch("/api/chat", {
+      const res = await fetch(`/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -264,7 +290,7 @@ function App() {
 
       // Instead of rendering each network chunk the instant it arrives,
       // we push received text into a queue and drain it on a fixed
-      // interval â€” this paces the VISIBLE reveal speed independently
+      // interval — this paces the VISIBLE reveal speed independently
       // of how fast Groq actually sent the data, so fresh answers feel
       // as smooth and readable as cached ones.
       let pendingQueue = "";
@@ -328,7 +354,16 @@ function App() {
         }
       }
 
-      // The turn is fully persisted on the backend by this point (Step 5) â€”
+      // The reader loop above can end because the server sent a proper
+      // "done" signal, OR because the connection just closed/dropped
+      // without ever sending one (network hiccup, backend cutting off
+      // early). Either way, once we reach here the stream is over — so
+      // always finalize isDone, rather than only trusting payload.done.
+      // Without this, a dropped connection left the message stuck in
+      // "streaming" state forever, with no code path left to clear it.
+      isDone = true;
+
+      // The turn is fully persisted on the backend by this point (Step 5) —
       // refresh the sidebar so a new conversation appears, or an existing
       // one's position/timestamp updates, without a manual page reload.
       if (currentUser) {
@@ -339,7 +374,7 @@ function App() {
       setMessages((prev) =>
         prev.map((m) =>
           m.id === assistantId
-            ? { ...m, text: `âš ï¸ ${err.message}`, isStreaming: false }
+            ? { ...m, text: `\u26A0\uFE0F ${err.message}`, isStreaming: false }
             : m
         )
       );
@@ -378,7 +413,7 @@ function App() {
   };
 
   // Wrapped in useCallback so these functions keep the SAME reference
-  // across App re-renders â€” required for React.memo on MessageBubble
+  // across App re-renders — required for React.memo on MessageBubble
   // to actually work (otherwise every App render would hand each
   // MessageBubble a "new" onCopy/onFeedback/onRetry function, which
   // defeats memo since props would look different every time).
@@ -412,14 +447,14 @@ function App() {
   }, []);
 
   // Resets the BACKEND session too (not just the visible message list),
-  // so a fresh conversation actually starts at the DAG root again â€”
+  // so a fresh conversation actually starts at the DAG root again —
   // without this, "New chat" was only cosmetic on the frontend.
   const handleNewChat = useCallback(async () => {
     setActiveConversationId(null);
     setMessages([]);
     setSidebarOpen(false);
     try {
-      await fetch("/api/new-chat", {
+      await fetch(`/api/new-chat`, {
         method: "POST",
         credentials: "include",
       });
@@ -442,7 +477,7 @@ function App() {
 
   const handleLogout = useCallback(async () => {
     try {
-      await fetch("/api/auth/logout", {
+      await fetch(`/api/auth/logout`, {
         method: "POST",
         credentials: "include",
       });
@@ -462,62 +497,109 @@ function App() {
   }, []);
 
   // If the URL contains a reset token, show ONLY the reset password
-  // screen â€” nothing else in the app renders until this is done.
+  // screen — nothing else in the app renders until this is done.
   if (resetToken) {
     return <ResetPassword token={resetToken} onSuccess={handleResetSuccess} />;
   }
 
+  // Same pattern as resetToken above, but for lectures we render inline
+  // below (sidebar + main content both branch on showLectures) rather
+  // than returning a whole separate page.
+
   const hasMessages = messages.length > 0;
+
+  const LectureToggleButton = showLectures ? (
+    <button
+      onClick={() => {
+        setShowLectures(false);
+        setVideoFocusMode(false);
+        setSidebarOpen(false);
+      }}
+      aria-label="Back to chat"
+      className="flex items-center justify-center w-9 h-9 mb-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors text-zinc-200"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12" />
+        <polyline points="12 19 5 12 12 5" />
+      </svg>
+    </button>
+  ) : (
+    <button
+      onClick={() => {
+        setShowLectures(true);
+        setVideoFocusMode(false);
+        setSidebarOpen(false);
+      }}
+      className="flex items-center gap-2 px-3 py-2 mb-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors text-sm"
+    >
+      <span className="text-lg leading-none">{"\u{1F4DA}"}</span>
+      Lectures
+    </button>
+  );
+
+  const JeeaiTitle = (
+    <div className="flex items-center justify-between px-2 py-2 mb-2">
+      <div className="text-lg font-semibold">JEEAI</div>
+      <button
+        onClick={() => setSidebarOpen(false)}
+        className="md:hidden text-zinc-400 hover:text-zinc-200"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+  );
 
   const SidebarContent = (
     <>
-      <div className="flex items-center justify-between px-2 py-2 mb-2">
-        <div className="text-lg font-semibold">JEEAI</div>
-        <button
-          onClick={() => setSidebarOpen(false)}
-          className="md:hidden text-zinc-400 hover:text-zinc-200"
-        >
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        </button>
-      </div>
+      {showLectures ? (
+        <>
+          {LectureToggleButton}
+          {JeeaiTitle}
+        </>
+      ) : (
+        <>
+          {JeeaiTitle}
+          {LectureToggleButton}
+          <button
+            onClick={handleNewChat}
+            className="flex items-center gap-2 px-3 py-2 mb-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors text-sm"
+          >
+            <span className="text-lg leading-none">+</span>
+            New chat
+          </button>
+        </>
+      )}
 
-      <button
-        onClick={handleNewChat}
-        className="flex items-center gap-2 px-3 py-2 mb-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 transition-colors text-sm"
-      >
-        <span className="text-lg leading-none">+</span>
-        New chat
-      </button>
-
-      <nav className="flex-1 overflow-y-auto space-y-1">
-        {!authChecked ? null : currentUser ? (
-          conversations.length > 0 ? (
-            conversations.map((conv) => (
-              <button
-                key={conv.id}
-                onClick={() => handleSelectConversation(conv.id)}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm truncate transition-colors ${
-                  activeConversationId === conv.id
-                    ? "bg-zinc-800 text-zinc-100"
-                    : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200"
-                }`}
-              >
-                {conv.title}
-              </button>
-            ))
-          ) : (
-            <div className="px-3 py-2 text-sm text-zinc-500">
-              No conversations yet
-            </div>
-          )
-        ) : (
-          <div className="px-3 py-2 text-sm text-zinc-500">
-            Log in to save your chat history
-          </div>
-        )}
+      <nav className="flex-1 overflow-y-auto -mx-3 space-y-1">
+        {showLectures ? (
+          <LectureSidebar
+            lectures={LECTURES}
+            activeId={activeLecture?.id}
+            onSelect={(lec) => {
+              setActiveLecture(lec);
+              setVideoFocusMode(true);
+              setSidebarOpen(false);
+            }}
+          />
+        ) : !authChecked ? null : currentUser ? (
+          conversations.length > 0 &&
+          conversations.map((conv) => (
+            <button
+              key={conv.id}
+              onClick={() => handleSelectConversation(conv.id)}
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm truncate transition-colors ${
+                activeConversationId === conv.id
+                  ? "bg-zinc-800 text-zinc-100"
+                  : "text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200"
+              }`}
+            >
+              {conv.title}
+            </button>
+          ))
+        ) : null}
       </nav>
 
       <div className="relative mt-2">
@@ -591,12 +673,14 @@ function App() {
 
   return (
     <div className="h-screen w-screen bg-zinc-950 text-zinc-100 flex overflow-hidden">
-      <aside className="hidden md:flex w-64 bg-zinc-900 border-r border-zinc-800 flex-col p-3 shrink-0">
-        {SidebarContent}
-      </aside>
+      {!videoFocusMode && (
+        <aside className="hidden md:flex w-64 bg-zinc-900 border-r border-zinc-800 flex-col p-3 shrink-0">
+          {SidebarContent}
+        </aside>
+      )}
 
       {sidebarOpen && (
-        <div className="md:hidden fixed inset-0 z-50 flex">
+        <div className="fixed inset-0 z-50 flex">
           <div
             className="fixed inset-0 bg-black/60"
             onClick={() => setSidebarOpen(false)}
@@ -608,67 +692,92 @@ function App() {
       )}
 
       <main className="flex-1 flex flex-col min-w-0">
-        <div className="md:hidden flex items-center gap-3 px-3 py-3 border-b border-zinc-800">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="text-zinc-300 hover:text-zinc-100"
-          >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="18" x2="21" y2="18" />
-            </svg>
-          </button>
-          <div className="text-sm font-semibold">JEEAI</div>
-        </div>
-
-        {!hasMessages ? (
-          <div className="flex-1 flex flex-col items-center justify-center px-4">
-            <h1 className="text-2xl md:text-3xl font-medium text-zinc-200 mb-8 text-center">
-              What's on the agenda today?
-            </h1>
-          </div>
-        ) : (
-          <div className="flex-1 overflow-y-auto px-4">
-            <div className="max-w-2xl mx-auto py-8 space-y-6">
-              {messages.map((msg) => (
-                <MessageBubble
-                  key={msg.id}
-                  msg={msg}
-                  isCopied={copiedId === msg.id}
-                  onCopy={handleCopy}
-                  onFeedback={handleFeedback}
-                  onRetry={handleRetry}
-                />
-              ))}
-            </div>
+        {!videoFocusMode && (
+          <div className="md:hidden flex items-center gap-3 px-3 py-3 border-b border-zinc-800">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="text-zinc-300 hover:text-zinc-100"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <line x1="3" y1="12" x2="21" y2="12" />
+                <line x1="3" y1="18" x2="21" y2="18" />
+              </svg>
+            </button>
+            <div className="text-sm font-semibold">JEEAI</div>
           </div>
         )}
 
-        <div className="w-full flex justify-center px-3 md:px-4 pb-6 md:pb-8">
-          <div className="w-full max-w-2xl flex items-center gap-2 md:gap-3 bg-zinc-800 rounded-full px-4 md:px-5 py-3">
-            <button className="text-zinc-400 hover:text-zinc-200 transition-colors text-xl leading-none">
-              +
-            </button>
-            <input
-              type="text"
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask anything"
-              className="flex-1 bg-transparent outline-none placeholder:text-zinc-500 text-zinc-100 min-w-0"
-            />
-            <button className="hidden sm:block text-zinc-400 hover:text-zinc-200 transition-colors text-sm">
-              Think
-            </button>
-            <button
-              onClick={handleSend}
-              className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-500 transition-colors flex items-center justify-center text-sm shrink-0"
-            >
-              âž¤
-            </button>
-          </div>
-        </div>
+        {showLectures ? (
+          <LectureMain
+            activeLecture={activeLecture}
+            doubtOpen={doubtOpen}
+            setDoubtOpen={(open) => {
+              setDoubtOpen(open);
+              // Opening the doubt bot collapses the lecture-list sidebar
+              // too, so only one panel is ever open at a time.
+              if (open) setVideoFocusMode(true);
+            }}
+            showSidebarToggle={videoFocusMode}
+            onOpenSidebar={() => {
+              setSidebarOpen(true);
+              setDoubtOpen(false);
+            }}
+            onConversationSaved={currentUser ? fetchConversations : undefined}
+          />
+        ) : (
+          <>
+            {!hasMessages ? (
+              <div className="flex-1 flex flex-col items-center justify-center px-4">
+                <h1 className="text-2xl md:text-3xl font-medium text-zinc-200 mb-8 text-center">
+                  What's on the agenda today?
+                </h1>
+              </div>
+            ) : (
+              <div className="flex-1 overflow-y-auto px-4">
+                <div className="max-w-2xl mx-auto py-8 space-y-6">
+                  {messages.map((msg) => (
+                    <MessageBubble
+                      key={msg.id}
+                      msg={msg}
+                      isCopied={copiedId === msg.id}
+                      onCopy={handleCopy}
+                      onFeedback={handleFeedback}
+                      onRetry={handleRetry}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="w-full flex justify-center px-3 md:px-4 pb-6 md:pb-8">
+              <div className="w-full max-w-2xl flex items-center gap-2 md:gap-3 bg-zinc-800 rounded-full px-4 md:px-5 py-3">
+                <button className="text-zinc-400 hover:text-zinc-200 transition-colors text-xl leading-none">
+                  +
+                </button>
+                <input
+                  type="text"
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  placeholder="Ask anything"
+                  className="flex-1 bg-transparent outline-none placeholder:text-zinc-500 text-zinc-100 min-w-0"
+                />
+                <button className="hidden sm:block text-zinc-400 hover:text-zinc-200 transition-colors text-sm">
+                  Think
+                </button>
+                <button
+                  onClick={handleSend}
+                  className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-500 transition-colors flex items-center justify-center shrink-0"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="white" stroke="none">
+                    <path d="M2 21l21-9L2 3v7l15 2-15 2z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </main>
 
       {authModal === "login" && (

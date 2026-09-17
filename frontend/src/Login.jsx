@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 
+
 function Login({ onClose, onLoginSuccess, onSwitchToSignup, onForgotPassword }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,7 +18,7 @@ function Login({ onClose, onLoginSuccess, onSwitchToSignup, onForgotPassword }) 
 
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/auth/login", {
+      const res = await fetch(`/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include", // required so the browser stores the httpOnly cookie

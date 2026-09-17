@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 
+
 function ResetPassword({ token, onSuccess }) {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -28,7 +29,7 @@ function ResetPassword({ token, onSuccess }) {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/auth/reset-password", {
+      const res = await fetch(`/api/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, new_password: newPassword }),

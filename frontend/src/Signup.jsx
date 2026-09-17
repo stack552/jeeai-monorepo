@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 
+
 function Signup({ onClose, onSignupSuccess, onSwitchToLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,7 +29,7 @@ function Signup({ onClose, onSignupSuccess, onSwitchToLogin }) {
 
     setIsSubmitting(true);
     try {
-      const res = await fetch("/api/auth/signup", {
+      const res = await fetch(`/api/auth/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
