@@ -33,6 +33,13 @@ function fixTableFormatting(text) {
 // then pairs with some unrelated LATER $$ in the message, sweeping
 // everything in between into one broken math block. Detect an odd
 // count of $$ and neutralize the leftover one so it can't do that.
+function fixTableFormatting(text) {
+  if (!text) return text;
+  let fixed = text.replace(/<br\s*\/?>/gi, "; ");
+  fixed = fixed.replace(/\|(?!\n)\s*\|/g, "|\n|");
+  return fixed;
+}
+
 function sanitizeStrayDollarSigns(text) {
   if (!text) return text;
   const matches = [...text.matchAll(/\$\$/g)];
@@ -64,6 +71,25 @@ const MessageBubble = memo(function MessageBubble({ msg, isCopied, onCopy, onFee
         <ReactMarkdown
           remarkPlugins={[remarkMath]}
           rehypePlugins={[[rehypeKatex, { throwOnError: false, errorColor: "#71717a" }]]}
+          components={{
+            table: ({ node, ...props }) => (
+              <div className="overflow-x-auto my-4 rounded-lg border border-zinc-700">
+                <table className="w-full border-collapse text-sm" {...props} />
+              </div>
+            ),
+            thead: ({ node, ...props }) => (
+              <thead className="bg-zinc-800" {...props} />
+            ),
+            th: ({ node, ...props }) => (
+              <th className="border border-zinc-700 px-3 py-2 text-left font-semibold text-zinc-100" {...props} />
+            ),
+            td: ({ node, ...props }) => (
+              <td className="border border-zinc-700 px-3 py-2 align-top text-zinc-200" {...props} />
+            ),
+            tr: ({ node, ...props }) => (
+              <tr className="even:bg-zinc-900/40" {...props} />
+            ),
+          }}
         >
           {sanitizeStrayDollarSigns(fixTableFormatting(normalizeMathDelimiters(msg.text)))}
         </ReactMarkdown>
