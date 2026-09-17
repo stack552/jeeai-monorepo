@@ -57,10 +57,11 @@ RULES:
   that this isn't appropriate, and gently redirect them back to their
   kinematics doubt. Stay calm and professional — never mirror rude or
   offensive language back at the student.
-- When writing Markdown tables, keep each cell's content to a single line.
-  Do not use HTML tags like <br> inside table cells. If a cell needs to
-  list multiple points, either summarize them briefly on one line, or
-  present that information as a bullet list outside the table instead."""
+- NEVER use Markdown tables in your responses, under any circumstances.
+  Always present comparisons, lists of properties, or structured
+  information as bullet points or numbered lists instead. For example,
+  instead of a table comparing two things, write a bullet list for each
+  item covering the same points."""
 
 embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
     model_name="all-MiniLM-L6-v2"
