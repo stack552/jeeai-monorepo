@@ -9,7 +9,7 @@ import ResetPassword from "./ResetPassword";
 import { LECTURES, LectureSidebar, LectureMain } from "./LectureLibrary";
 
 // Groq writes math as \[ ... \] and \( ... \), but remark-math only
-// recognizes $$ ... $$ and $ ... $ — convert before rendering.
+// recognizes $$ ... $$ and $ ... $ -- convert before rendering.
 function normalizeMathDelimiters(text) {
   if (!text) return text;
   let normalized = text.replace(/\\\[([\s\S]*?)\\\]/g, (_, inner) => `$$${inner}$$`);
@@ -18,7 +18,7 @@ function normalizeMathDelimiters(text) {
 }
 
 // LLMs sometimes emit table rows all on one line, or use <br> tags
-// inside cells instead of real line breaks — react-markdown needs an
+// inside cells instead of real line breaks -- react-markdown needs an
 // actual newline before each "| ... |" row to parse a table correctly.
 function fixTableFormatting(text) {
   if (!text) return text;
@@ -33,13 +33,6 @@ function fixTableFormatting(text) {
 // then pairs with some unrelated LATER $$ in the message, sweeping
 // everything in between into one broken math block. Detect an odd
 // count of $$ and neutralize the leftover one so it can't do that.
-function fixTableFormatting(text) {
-  if (!text) return text;
-  let fixed = text.replace(/<br\s*\/?>/gi, "; ");
-  fixed = fixed.replace(/\|(?!\n)\s*\|/g, "|\n|");
-  return fixed;
-}
-
 function sanitizeStrayDollarSigns(text) {
   if (!text) return text;
   const matches = [...text.matchAll(/\$\$/g)];
@@ -71,25 +64,6 @@ const MessageBubble = memo(function MessageBubble({ msg, isCopied, onCopy, onFee
         <ReactMarkdown
           remarkPlugins={[remarkMath]}
           rehypePlugins={[[rehypeKatex, { throwOnError: false, errorColor: "#71717a" }]]}
-          components={{
-            table: ({ node, ...props }) => (
-              <div className="overflow-x-auto my-4 rounded-lg border border-zinc-700">
-                <table className="w-full border-collapse text-sm" {...props} />
-              </div>
-            ),
-            thead: ({ node, ...props }) => (
-              <thead className="bg-zinc-800" {...props} />
-            ),
-            th: ({ node, ...props }) => (
-              <th className="border border-zinc-700 px-3 py-2 text-left font-semibold text-zinc-100" {...props} />
-            ),
-            td: ({ node, ...props }) => (
-              <td className="border border-zinc-700 px-3 py-2 align-top text-zinc-200" {...props} />
-            ),
-            tr: ({ node, ...props }) => (
-              <tr className="even:bg-zinc-900/40" {...props} />
-            ),
-          }}
         >
           {sanitizeStrayDollarSigns(fixTableFormatting(normalizeMathDelimiters(msg.text)))}
         </ReactMarkdown>
@@ -200,17 +174,17 @@ function App() {
   const [conversations, setConversations] = useState([]);
 
   // --- Lecture library view toggle ---
-  // No react-router in this app — views are switched with local state,
+  // No react-router in this app -- views are switched with local state,
   // same pattern as authModal below. When true, the sidebar shows the
   // lecture list (instead of conversations) and the main area shows the
-  // video/doubt panel (instead of the chat), inside this SAME layout —
+  // video/doubt panel (instead of the chat), inside this SAME layout --
   // not a separate full-screen page.
   const [showLectures, setShowLectures] = useState(false);
   const [activeLecture, setActiveLecture] = useState(LECTURES[0] ?? null);
   const [doubtOpen, setDoubtOpen] = useState(false);
-  // true once a lecture has been picked — collapses the sidebar entirely
+  // true once a lecture has been picked -- collapses the sidebar entirely
   // (at every screen size, not just mobile) so the video goes full-screen.
-  // The "?" button inside LectureMain reopens the sidebar as an overlay
+  // The "(hamburger)" button inside LectureMain reopens the sidebar as an overlay
   // using the same sidebarOpen state the mobile menu already uses.
   const [videoFocusMode, setVideoFocusMode] = useState(false);
 
@@ -267,7 +241,7 @@ function App() {
   }, [currentUser, fetchConversations]);
 
   // Loads one past conversation's full messages into the chat view.
-  // This is a read-only replay of history — sending a new message
+  // This is a read-only replay of history -- sending a new message
   // afterward continues the browser's LIVE session (and its own
   // conversation_id on the backend), not this one being viewed.
   const handleSelectConversation = useCallback(async (conversationId) => {
@@ -316,7 +290,7 @@ function App() {
 
       // Instead of rendering each network chunk the instant it arrives,
       // we push received text into a queue and drain it on a fixed
-      // interval — this paces the VISIBLE reveal speed independently
+      // interval -- this paces the VISIBLE reveal speed independently
       // of how fast Groq actually sent the data, so fresh answers feel
       // as smooth and readable as cached ones.
       let pendingQueue = "";
@@ -383,13 +357,13 @@ function App() {
       // The reader loop above can end because the server sent a proper
       // "done" signal, OR because the connection just closed/dropped
       // without ever sending one (network hiccup, backend cutting off
-      // early). Either way, once we reach here the stream is over — so
+      // early). Either way, once we reach here the stream is over -- so
       // always finalize isDone, rather than only trusting payload.done.
       // Without this, a dropped connection left the message stuck in
       // "streaming" state forever, with no code path left to clear it.
       isDone = true;
 
-      // The turn is fully persisted on the backend by this point (Step 5) —
+      // The turn is fully persisted on the backend by this point (Step 5) --
       // refresh the sidebar so a new conversation appears, or an existing
       // one's position/timestamp updates, without a manual page reload.
       if (currentUser) {
@@ -439,7 +413,7 @@ function App() {
   };
 
   // Wrapped in useCallback so these functions keep the SAME reference
-  // across App re-renders — required for React.memo on MessageBubble
+  // across App re-renders -- required for React.memo on MessageBubble
   // to actually work (otherwise every App render would hand each
   // MessageBubble a "new" onCopy/onFeedback/onRetry function, which
   // defeats memo since props would look different every time).
@@ -473,7 +447,7 @@ function App() {
   }, []);
 
   // Resets the BACKEND session too (not just the visible message list),
-  // so a fresh conversation actually starts at the DAG root again —
+  // so a fresh conversation actually starts at the DAG root again --
   // without this, "New chat" was only cosmetic on the frontend.
   const handleNewChat = useCallback(async () => {
     setActiveConversationId(null);
@@ -523,7 +497,7 @@ function App() {
   }, []);
 
   // If the URL contains a reset token, show ONLY the reset password
-  // screen — nothing else in the app renders until this is done.
+  // screen -- nothing else in the app renders until this is done.
   if (resetToken) {
     return <ResetPassword token={resetToken} onSuccess={handleResetSuccess} />;
   }

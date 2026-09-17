@@ -5,22 +5,22 @@ import ChatPanel from "./ChatPanel";
  * LectureLibrary.jsx
  * -------------------
  * Save into src/LectureLibrary.jsx (same folder as App.jsx).
- * App.jsx doesn't use react-router — it's state-toggled — so this page
+ * App.jsx doesn't use react-router -- it's state-toggled -- so this page
  * is switched into view the same way (see the App.jsx patch instructions).
  *
  * WHAT YOU STILL NEED TO FILL IN:
- * 1. `LECTURES` array below — fill in your real 68 titles + YouTube video IDs.
+ * 1. `LECTURES` array below -- fill in your real 68 titles + YouTube video IDs.
  *    (Just the 11-char ID from the URL, e.g. https://youtu.be/XXXXXXXXXXX)
  *
- * ChatPanel (the doubt bot) is already wired in — see ChatPanel.jsx.
+ * ChatPanel (the doubt bot) is already wired in -- see ChatPanel.jsx.
  *
  * DESIGN NOTES:
  * - Sidebar is virtualization-free since 68 items is small enough to just
- *   render directly — no need for react-window etc.
+ *   render directly -- no need for react-window etc.
  * - The YouTube player uses a plain <iframe> with the standard embed URL.
  *   Unlisted videos embed fine as long as embedding isn't disabled on the
  *   video itself (check that in YouTube Studio > video > embedding).
- * - The doubt panel is NOT an overlay — clicking "Ask Doubt" resizes the
+ * - The doubt panel is NOT an overlay -- clicking "Ask Doubt" resizes the
  *   layout so the video area shrinks to 70% width and a 30%-wide chat
  *   panel appears alongside it (not on top of it). Video keeps playing
  *   the whole time since it's just a CSS width change, not an unmount.
@@ -29,7 +29,7 @@ import ChatPanel from "./ChatPanel";
  */
 
 // -----------------------------------------------------------------------
-// 1. YOUR LECTURE DATA — replace with the real 68
+// 1. YOUR LECTURE DATA -- replace with the real 68
 // -----------------------------------------------------------------------
 export const LECTURES = [
   { id: "l1", title: "Kinematics Lecture 1 : Introduction to Rest and Motion", youtubeId: "359RL_Slmws" },
@@ -65,8 +65,8 @@ export const LECTURES = [
   { id: "l31", title: "Kinematics Lecture 31 :  non uniform straight line motion || Ekalavya", youtubeId: "2GkM6Ms_bKE" },
   { id: "l32", title: "Kinematics Lecture 32 : Equations of motion in straight line || Ekalavya", youtubeId: "MV_oWBxjGwY" },
   { id: "l33", title: "Kinematics Lecture 33 : proof of v = u + at || Ekalavya", youtubeId: "1I8vee__wUM" },
-  { id: "l34", title: "Kinematics Lecture 34 :  s = ut + (1/2)at²", youtubeId: "9AXGZydT2Yo" },
-  { id: "l35", title: "Kinematics Lecture 35 : proof of v² - u² = 2as || Ekalavya", youtubeId: "aX-6IK2whns" },
+  { id: "l34", title: "Kinematics Lecture 34 :  s = ut + (1/2)at^2", youtubeId: "9AXGZydT2Yo" },
+  { id: "l35", title: "Kinematics Lecture 35 : proof of v^2 - u^2 = 2as || Ekalavya", youtubeId: "aX-6IK2whns" },
   { id: "l36", title: "Kinematics Lecture 36 : Equations of motion in straight line || Ekalavya", youtubeId: "LJiYy8Zxa7Q" },
   { id: "l37", title: "Kinematics Lecture 37 : solved problem 18 || Ekalavya", youtubeId: "YBhIpL048F0" },
   { id: "l38", title: "Kinematics Lecture 38 : solved example 19 || Ekalavya", youtubeId: "8Ls5HJnzDGU" },
@@ -103,7 +103,7 @@ export const LECTURES = [
 ];
 
 // -----------------------------------------------------------------------
-// 2. Sidebar — searchable list of lecture titles
+// 2. Sidebar -- searchable list of lecture titles
 // -----------------------------------------------------------------------
 export function LectureSidebar({ lectures, activeId, onSelect, onClose }) {
   const [query, setQuery] = useState("");
@@ -173,7 +173,7 @@ export function LectureSidebar({ lectures, activeId, onSelect, onClose }) {
 }
 
 // -----------------------------------------------------------------------
-// 3. Video player — plain YouTube iframe embed
+// 3. Video player -- plain YouTube iframe embed
 // -----------------------------------------------------------------------
 function VideoPlayer({ lecture }) {
   if (!lecture) {
@@ -205,8 +205,8 @@ function VideoPlayer({ lecture }) {
 }
 
 // -----------------------------------------------------------------------
-// 4. Doubt panel — inline 30%-width panel, sits beside the video (not over
-//    it). No local "Past Questions" history here — the main sidebar's
+// 4. Doubt panel -- inline 30%-width panel, sits beside the video (not over
+//    it). No local "Past Questions" history here -- the main sidebar's
 //    conversation list (backend-persisted, via onConversationSaved)
 //    already covers that, so this stays a plain, stateless-on-close panel.
 // -----------------------------------------------------------------------
@@ -241,7 +241,7 @@ function DoubtPanel({ onClose, currentLecture, onConversationSaved }) {
 }
 
 // -----------------------------------------------------------------------
-// 5. Lecture main area — video + doubt panel, NO sidebar of its own.
+// 5. Lecture main area -- video + doubt panel, NO sidebar of its own.
 //    Meant to be dropped into App.jsx's existing <main> in place of the
 //    chat message list, while App.jsx's own sidebar shows the lecture
 //    list (via the LectureSidebar export above) instead of conversations.
@@ -294,7 +294,7 @@ export function LectureMain({ activeLecture, doubtOpen, setDoubtOpen, showSideba
 }
 
 // -----------------------------------------------------------------------
-// 6. Standalone full page (kept for reference / other use) — combines
+// 6. Standalone full page (kept for reference / other use) -- combines
 //    everything above into one self-contained page with its own overlay
 //    sidebar. App.jsx no longer uses this default export directly; it
 //    uses the LECTURES / LectureSidebar / LectureMain pieces above instead,
@@ -307,9 +307,9 @@ export default function LectureLibrary({ onBack }) {
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-neutral-950">
-      {/* Sidebar — floating overlay panel, closed by default, toggled from
-          the "? Lectures" button. This applies at every screen size now,
-          not just mobile — the video stays full-screen until you open it. */}
+      {/* Sidebar -- floating overlay panel, closed by default, toggled from
+          the "(hamburger) Lectures" button. This applies at every screen size now,
+          not just mobile -- the video stays full-screen until you open it. */}
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
@@ -332,9 +332,9 @@ export default function LectureLibrary({ onBack }) {
         />
       </div>
 
-      {/* Main content — video + doubt panel share this row, always full width */}
+      {/* Main content -- video + doubt panel share this row, always full width */}
       <div className="flex h-full min-w-0">
-        {/* Video area — 100% width normally, 70% when doubt panel is open */}
+        {/* Video area -- 100% width normally, 70% when doubt panel is open */}
         <div
           className={`relative min-w-0 transition-all duration-300 ${
             doubtOpen ? "w-[70%]" : "w-full"
@@ -373,7 +373,7 @@ export default function LectureLibrary({ onBack }) {
           <VideoPlayer lecture={activeLecture} />
         </div>
 
-        {/* Doubt panel — 30% width, only takes space when open */}
+        {/* Doubt panel -- 30% width, only takes space when open */}
         {doubtOpen && (
           <div className="w-[30%] shrink-0">
             <DoubtPanel

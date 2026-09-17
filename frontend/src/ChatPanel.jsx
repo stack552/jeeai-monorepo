@@ -6,13 +6,13 @@ import rehypeKatex from "rehype-katex";
 /**
  * ChatPanel.jsx
  * -------------
- * A narrower, self-contained version of the chat UI from App.jsx —
+ * A narrower, self-contained version of the chat UI from App.jsx --
  * same backend endpoint (/api/chat), same SSE streaming + reveal-pacing
  * logic, same markdown/KaTeX rendering. Built as its own component
  * (rather than editing App.jsx's internals) so your existing full-page
  * chat keeps working exactly as it does today, untouched.
  *
- * No local "Past Questions" history here — every question already gets
+ * No local "Past Questions" history here -- every question already gets
  * saved to the backend (same as the main chat), and onConversationSaved
  * tells App.jsx to refresh its sidebar so it shows up there too. That's
  * the single source of truth for history now.
@@ -42,7 +42,7 @@ function sanitizeStrayDollarSigns(text) {
 }
 
 // LLMs sometimes emit table rows all on one line, or use <br> tags
-// inside cells instead of real line breaks — react-markdown needs an
+// inside cells instead of real line breaks -- react-markdown needs an
 // actual newline before each "| ... |" row to parse a table correctly.
 function fixTableFormatting(text) {
   if (!text) return text;
@@ -133,7 +133,7 @@ export default function ChatPanel({ lectureTitle, onConversationSaved }) {
   const [copiedId, setCopiedId] = useState(null);
 
   // A fresh doubt session shares the SAME backend session cookie as the
-  // main chat — without resetting it here, the first question would just
+  // main chat -- without resetting it here, the first question would just
   // get appended onto whatever conversation was already active there,
   // instead of starting its own. This silent reset is what makes each
   // doubt-panel session start as its own distinct, separately-titled
@@ -224,7 +224,7 @@ export default function ChatPanel({ lectureTitle, onConversationSaved }) {
       // The reader loop above can end because the server sent a proper
       // "done" signal, OR because the connection just closed/dropped
       // without ever sending one (network hiccup, backend cutting off
-      // early). Either way, once we reach here the stream is over — so
+      // early). Either way, once we reach here the stream is over -- so
       // always finalize isDone, rather than only trusting payload.done.
       // Without this, a dropped connection left the message stuck in
       // "streaming" state forever, with no code path left to clear it.
@@ -232,7 +232,7 @@ export default function ChatPanel({ lectureTitle, onConversationSaved }) {
 
       // The turn is now persisted on the backend (same /api/chat endpoint
       // the main chat uses), so tell App.jsx to refresh its conversation
-      // list — that's how this question shows up in the main sidebar too.
+      // list -- that's how this question shows up in the main sidebar too.
       if (onConversationSaved) {
         onConversationSaved();
       }
