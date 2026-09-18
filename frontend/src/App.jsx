@@ -551,17 +551,35 @@ function App() {
   );
 
   const JeeaiTitle = (
-    <div className="flex items-center justify-between px-2 py-2 mb-2">
-      <div className="text-lg font-semibold">JEEAI</div>
+    <div>
       <button
-        onClick={() => setSidebarOpen(false)}
-        className="md:hidden text-zinc-400 hover:text-zinc-200"
+        onClick={() => setShowLandingPage(true)}
+        aria-label="Back to home"
+        className="mb-1 flex items-center justify-center w-8 h-8 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="19" y1="12" x2="5" y2="12" />
+          <polyline points="12 19 5 12 12 5" />
         </svg>
       </button>
+
+      <div className="flex items-center justify-between px-2 py-2 mb-2">
+        <button
+          onClick={() => setShowLandingPage(true)}
+          className="text-lg font-semibold hover:text-zinc-300 transition-colors"
+        >
+          JEEAI
+        </button>
+        <button
+          onClick={() => setSidebarOpen(false)}
+          className="md:hidden text-zinc-400 hover:text-zinc-200"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 
@@ -717,7 +735,7 @@ function App() {
                 <line x1="3" y1="18" x2="21" y2="18" />
               </svg>
             </button>
-            <div className="text-sm font-semibold">JEEAI</div>
+            <button onClick={() => setShowLandingPage(true)} className="text-sm font-semibold hover:text-zinc-300 transition-colors">JEEAI</button>
           </div>
         )}
 
