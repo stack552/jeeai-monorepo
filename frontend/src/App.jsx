@@ -7,6 +7,7 @@ import Signup from "./Signup";
 import ForgotPassword from "./ForgotPassword";
 import ResetPassword from "./ResetPassword";
 import { LECTURES, LectureSidebar, LectureMain } from "./LectureLibrary";
+import LandingPage from "./LandingPage";
 
 // Groq writes math as \[ ... \] and \( ... \), but remark-math only
 // recognizes $$ ... $$ and $ ... $ -- convert before rendering.
@@ -187,6 +188,11 @@ function App() {
   // The "(hamburger)" button inside LectureMain reopens the sidebar as an overlay
   // using the same sidebarOpen state the mobile menu already uses.
   const [videoFocusMode, setVideoFocusMode] = useState(false);
+
+  // Shows the entry/landing page first, before the actual chat app.
+  // Clicking its button reveals the app below (matches the resetToken
+  // pattern below - a full-screen replacement rather than a route).
+  const [showLandingPage, setShowLandingPage] = useState(true);
 
   // --- Password reset state (3.10.4d) ---
   // Read once, on initial render, whether the URL contains a reset token.
@@ -500,6 +506,13 @@ function App() {
   // screen -- nothing else in the app renders until this is done.
   if (resetToken) {
     return <ResetPassword token={resetToken} onSuccess={handleResetSuccess} />;
+  }
+
+  // Entry page, shown before the chat app itself. Checked after
+  // resetToken (a password-reset link should never be blocked by this)
+  // but before everything else.
+  if (showLandingPage) {
+    return <LandingPage onEnter={() => setShowLandingPage(false)} />;
   }
 
   // Same pattern as resetToken above, but for lectures we render inline
