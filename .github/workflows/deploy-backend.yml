@@ -1,0 +1,26 @@
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'rag-pipeline/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to VM over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: 22
+          script: |
+            cd /home/nsaipraneeth12/jeeai-monorepo
+            git pull
+            source venv/bin/activate
+            pip install -r backend/requirements.txt --break-system-packages
+            sudo systemctl restart jeeai
