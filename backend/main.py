@@ -369,3 +369,5 @@ async def delete_conversation_route(conversation_id: int,
     if not deleted:
         raise HTTPException(status_code=404, detail="Conversation not found")
     return {"status": "deleted"}
+
+# CI/CD test comment
